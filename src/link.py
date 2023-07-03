@@ -1,14 +1,17 @@
 import datetime
 
-
 class Link:
     
     link = "https://estaticos.smn.gob.ar/vmsr/satelite/TOP_C13_ARG_ALTA_"
     date = datetime.datetime.now()
     fileStrFile = "%Y-%m-%d %H;%M;%S.jpg"
 
-    def __init__(self):
-        pass
+    def __init__(self, satelite: str):
+        self.satelite = satelite
+        if (satelite == 'CEN'):
+            self.link = "https://estaticos.smn.gob.ar/vmsr/satelite/TOP_C13_CEN_ALTA_"
+        elif (satelite == 'ARG'):
+            self.link = "https://estaticos.smn.gob.ar/vmsr/satelite/TOP_C13_ARG_ALTA_"
 
     def setDate(self, date:datetime.datetime) -> None:
         self.date = date
@@ -37,6 +40,9 @@ class Link:
 
     def getFilename(self) -> str:
         return self.date.strftime("%Y-%m-%d %H;%M;%S.jpg")
+
+    def getFolder(self) -> str:
+        return self.satelite + "/"
 
     def getFinalLink(self) -> str:
         return self.link + self.__dateToString()

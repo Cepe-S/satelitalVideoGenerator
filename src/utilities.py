@@ -21,7 +21,7 @@ class Util:
         date -= datetime.timedelta(minutes=40)
         return date
 
-    # 1 = 10 minutos
+    # genera una determinada cantidad de fechas empezando por la última en la que se puede obtener una imagen
     def generateDates(amount:int) -> List[datetime.datetime]:
         date = Util.roundTime(Util.getLastAvailableDate())
         dates = []

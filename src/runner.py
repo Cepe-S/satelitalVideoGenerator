@@ -13,15 +13,22 @@ class Runner:
 
     def run(self) -> None:
 
-        imager = ImageManager()
+        satelites = ["CEN", "ARG"]
         generator = VideoGenerator()
+        imagers = []
+        for satelite in satelites:
+            imagers.append(ImageManager(satelite))
         print("Running")
         sched = bs()
         for i in range(7, 58, 10):
             @sched.scheduled_job('cron', minute=str(i))
             def job():
-                imager.updateBuffer()
-                generator.generate(image_list=[os.path.join("buffer", archivo) for archivo in os.listdir("buffer")], video_name="video")
+                image_lists = []
+                for imager in imagers:
+                    imager.updateBuffer()
+                    image_lists.append(imager.getImageList())
+
+                generator.imagesToVideo(image_lists=image_lists)
 
         sched.start()
 

@@ -51,3 +51,10 @@ class Log:
         Log.write(f"Buffer gave up, image \"{image}\" is missing", 2)
 
 
+    def videoRenderingStarted():
+        Log.write("Rendering started", 0)
+    
+    def videoUpdated():
+        Log.write("Video updated", 0)
+
+
