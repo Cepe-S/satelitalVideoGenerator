@@ -4,18 +4,16 @@ from runner import Runner
 from imageManager import ImageManager
 import os
 
-from videoGenerator import VideoGenerator
-
-# TODO: agregar barra de tiempo
 # TODO: agregar semáforo -> horas a las que no se pueden generar videos o semáforo para evitar que se 
 #       lea el archivo mientras se está escribiendo
-# TODO: terminar de definir el formato, tamaño y demás de los videos
-# TODO: agregar vista central de satelite
-# TODO: agregar envío de problemas en tiempo real por mail
-# TODO: actualizar fondo
-# TODO: sacar parte de arriba de la imagen?
-# TODO: agregar donde esta mar del plata?
 
+# TODO: agregar envío de problemas en tiempo real por mail
+
+# TODO: terminar de definir el formato, tamaño y demás de los videos
+# TODO: actualizar fondo
+# TODO: agregar barra de tiempo (definir como va a ser)
+
+# TODO: ver si es preferible que se modifique el tamaño de un mapa para que sea el mismo que el otro
 
 def main():
 
@@ -31,6 +29,7 @@ def main():
     satelites = ["CEN", "ARG"]
 
     # descarga las primeras 24 imágenes de todos los satélites
+    print("Descargando primeras imágenes")
     for satelite in satelites:
         w = ImageManager(satelite=satelite)
         w.downloadIntImages(24)
@@ -41,4 +40,7 @@ def main():
     except Exception as e:
         ErrorManager.fatalError(e)
 
-main()
+if __name__ == "__main__":
+    main()
+
+
