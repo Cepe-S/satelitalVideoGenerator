@@ -4,6 +4,9 @@ from runner import Runner
 from imageManager import ImageManager
 import os
 
+import keyboard
+import signal
+
 # TODO: agregar semáforo -> horas a las que no se pueden generar videos o semáforo para evitar que se 
 #       lea el archivo mientras se está escribiendo
 
@@ -13,10 +16,15 @@ import os
 # TODO: actualizar fondo
 # TODO: agregar barra de tiempo (definir como va a ser)
 
-# TODO: ver si es preferible que se modifique el tamaño de un mapa para que sea el mismo que el otro
 
-def main():
+def shutdown(runner: Runner) -> None:
+    # Cierra todos los procesos en segundo plano (apshoudler)
 
+    runner.shutdown()
+    # Cierra el programa
+    os.kill(os.getpid(), signal.SIGTERM)
+
+def startImages():
     # cambia el directorio de trabajo al directorio del programa
     separador = os.path.sep
     dir_actual = os.path.dirname(os.path.abspath(__file__))
@@ -34,12 +42,18 @@ def main():
         w = ImageManager(satelite=satelite)
         w.downloadIntImages(24)
 
+
+def main():
+    startImages()
+    runner = Runner()
+    keyboard.on_press_key("x", lambda _: shutdown(runner)) 
     # ejecuta el runner
     try:
-        Runner().run()
+        runner.run()
     except Exception as e:
         ErrorManager.fatalError(e)
-
+    
+    
 if __name__ == "__main__":
     main()
 

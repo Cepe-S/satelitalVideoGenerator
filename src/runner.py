@@ -4,12 +4,24 @@ from apscheduler.schedulers.blocking import BlockingScheduler as bs
 from log import Log
 from imageManager import ImageManager
 from videoGenerator import VideoGenerator
+import keyboard
+
 
 class Runner:
 
     def __init__(self) -> None:
         Log.runnerStarted()
+        self.sched = bs()
         pass
+
+    def shutdown(self) -> None:
+        Log.shutdown()
+        print("Shutting down")
+        # Cierra todos los procesos en segundo plano (apshoudler)
+        self.sched.remove_all_jobs()
+        self.sched.shutdown()
+        # Cierra el programa
+        exit()
 
     def run(self) -> None:
 
@@ -21,17 +33,19 @@ class Runner:
 
         print("Running")
 
-        sched = bs()
         for i in range(7, 58, 10):
-            @sched.scheduled_job('cron', minute=str(i))
+            @self.sched.scheduled_job('cron', minute=str(i))
             def job():
                 image_lists = []
+                # actualiza todos los imagers y guarda sus listas de imágenes en una lista
                 for imager in imagers:
                     imager.updateBuffer()
                     image_lists.append(imager.getImageList())
 
+                # genera el video con las listas de imágenes
                 generator.imagesToVideo(image_lists, 2)
 
-        sched.start()
+        self.sched.start()
+
 
 # Runner().run()

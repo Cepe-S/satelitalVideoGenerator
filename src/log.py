@@ -58,3 +58,6 @@ class Log:
         Log.write("Video updated", 0)
 
 
+    def shutdown():
+        Log.write("Runner shutdown", 0)
+

@@ -1,11 +1,24 @@
+import contextlib
 import json
+import os
+import sys
+
 from moviepy.editor import ImageSequenceClip, CompositeVideoClip, concatenate
 from moviepy.video import fx
-import cv2
+
 from typing import List
 
 from log import Log
 
+@contextlib.contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 class VideoGenerator:
 
@@ -13,16 +26,20 @@ class VideoGenerator:
         config = {}
         with open("configuration.json", "r") as file:
             config = json.load(file)
+
         self.fps = config['fps']
         self.bitrate = config['bitrate']
         self.codec = config['codec']
         self.width = config['width']
         self.height = config['height']
         self.mapResizeRatio = config['mapResizeRatio']
-        self.extension = config['extension']
         self.threads = config['threads']
+
         self.background = "src/resources/background.jpg"
         self.duration = 1
+        self.path = config['path']
+        self.fileName = config['fileName']
+        self.extension = config['extension']
     
     # def addProgressBar(self, sequence: ImageSequenceClip) -> ImageSequenceClip:
     #     return fx.all.sequence(sequence, [fx.all.time_mirror, fx.all.time_symmetrize])
@@ -40,42 +57,8 @@ class VideoGenerator:
         # sacando el método compose se modifica el tamaño de la segunda secuencia para igualarse
         return concatenate(video_list, method="compose") 
 
-
-
-    def increase_fps_video(self, video_path: str, increased_fps: int) -> None:
-        # Load the original video using OpenCV
-        original_video = cv2.VideoCapture(video_path)
-
-        # Get the original video's fps
-        original_fps = original_video.get(cv2.CAP_PROP_FPS)
-
-        # Create a VideoWriter for the increased fps video
-        codec = cv2.VideoWriter_fourcc(*"mp4v")
-        increased_fps_video = cv2.VideoWriter(video_path, codec, increased_fps,
-                                            (int(original_video.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                                            int(original_video.get(cv2.CAP_PROP_FRAME_HEIGHT))))
-
-        # Read and write each frame from the original video
-        while original_video.isOpened():
-            ret, frame = original_video.read()
-            if not ret:
-                break
-
-            # Write the original frame to the increased fps video
-            increased_fps_video.write(frame)
-
-            # Create and write the fake frames
-            fake_frames = int(increased_fps / original_fps) - 1
-            for i in range(fake_frames):
-                increased_fps_video.write(frame)
-
-        # Release the resources
-        original_video.release()
-        increased_fps_video.release()
-
-    def generateFinalVideo(self, sequence: ImageSequenceClip, total_frames: int, video_name: str):
-
-        sequence.duration = total_frames 
+    def generateFinalVideo(self, sequence: ImageSequenceClip, total_frames: int):
+        sequence.duration = total_frames # iguala la duración de la secuencia de imágenes con la cantidad de frames
 
         # crea el fondo como una secuencia de imágenes con la misma cantidad de frames que la secuencia de imágenes
         background_clip = ImageSequenceClip([self.background] * total_frames, durations=[self.duration] * total_frames, 
@@ -85,9 +68,11 @@ class VideoGenerator:
         final_clip = CompositeVideoClip([background_clip, sequence], size=(self.width, self.height))
 
         Log.videoRenderingStarted()
-        # renderiza el video
-        final_clip.write_videofile(video_name + self.extension, audio=False, codec=self.codec, 
-                                   bitrate=self.bitrate, threads=self.threads)
+        with suppress_stdout():
+            # renderiza el video
+            final_clip.write_videofile(self.path + self.fileName + self.extension, audio=False, codec=self.codec, 
+                                    bitrate=self.bitrate, threads=self.threads)
+
         Log.videoUpdated()
 
     # globaliza todas las funciones
@@ -98,6 +83,11 @@ class VideoGenerator:
         sequences = []
         # genera una secuencia de imágenes para cada satélite y las guarda en una lista
         for image_list in image_lists:
+            # si la cantidad de imagenes es menor a 24, duplica la última imágen
+            if len(image_list) < 24:
+                for _ in range(24 - len(image_list)):
+                    image_list.append(image_list[-1])
+
             image_sequence = self.generateImageSequence(image_list)
             for _ in range(repeats):
                 sequences.append(image_sequence)
@@ -109,7 +99,7 @@ class VideoGenerator:
         final_sequence = final_sequence.set_position(("center", "center"))
         final_sequence = final_sequence.resize(self.mapResizeRatio)
 
-        self.generateFinalVideo(final_sequence, total_frames, "video")
+        self.generateFinalVideo(final_sequence, total_frames)
 
 
 
@@ -120,4 +110,3 @@ class VideoGenerator:
 # iCEN = ImageManager(satelite="CEN")
 
 # v.imagesToVideo([iARG.getImageList(), iCEN.getImageList()], 2)
-# v.increase_fps_video("video.mp4", 30)

@@ -10,7 +10,7 @@ from utilities import Util
 from errorManager import ErrorManager
 # se encarga de obtener las imagenes del satelite
 
-bestTryOrder = [21, 19, 22, 18, 23, 17, 24, 16, 25, 32, 15, 31, 14, 30, 13, 29, 12, 28, 11, 27, 10, 26, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+bestTryOrder = [20, 21, 19, 22, 18, 23, 17, 24, 16, 25, 32, 15, 31, 14, 30, 13, 29, 12, 28, 11, 27, 10, 26, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 class ImageManager:
 
@@ -36,7 +36,15 @@ class ImageManager:
             return False
         
         return True
-        
+
+    def isInBuffer(self, link: Link) -> bool:
+        # se verifica que la imagen no se encuentre en el buffer
+        for seg in bestTryOrder:
+            link.setSecond(seg)
+            if link.getFilename() in os.listdir("buffer/" + link.getFolder()):
+                return True
+        return False
+
     # descarga una imágen y devuelve su nombre
     def downloadImage(self, date: datetime.datetime) -> str:
         
@@ -45,8 +53,7 @@ class ImageManager:
         link.setDate(Util.roundTime(date))
         
         # si la imagen ya se encuentra en el buffer, no se descarga
-        if link.getFilename() in os.listdir("buffer/" + link.getFolder()):
-            # TODO: solucionar el problema de que se descargue la misma imagen dos veces cuando los segundos no terminan en 20
+        if self.isInBuffer(link):
             return link.getFilename()
 
         # se intenta descargar la imagen
@@ -111,10 +118,12 @@ class ImageManager:
             Log.bufferGaveUp()
             return
 
-        # si se descargó la imagen, se borra la más vieja del buffer
+        # si se descargó la imagen, se borra la más vieja del buffer (si es que hay más de 24 imágenes)
+        toRemove = "None"
         if tries < maxTries:
-            toRemove = self.satelite + "/" + os.listdir("buffer/" + self.satelite)[0]
-            os.remove("buffer/" + toRemove)
+            if len(os.listdir("buffer/" + self.satelite)) > 24:
+                toRemove = self.satelite + "/" + os.listdir("buffer/" + self.satelite)[0]
+                os.remove("buffer/" + toRemove)
             Log.bufferUpdated(imageDownloaded, toRemove)
 
     # TODO: decidir si se va a usar
