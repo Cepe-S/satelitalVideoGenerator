@@ -3,8 +3,8 @@ from errorManager import ErrorManager
 from runner import Runner
 from imageManager import ImageManager
 import os
+import atexit
 
-import keyboard
 import signal
 
 # TODO: agregar semáforo -> horas a las que no se pueden generar videos o semáforo para evitar que se 
@@ -18,13 +18,13 @@ import signal
 
 
 def shutdown(runner: Runner) -> None:
-    # Cierra todos los procesos en segundo plano (apshoudler)
 
+    # Cierra todos los procesos en segundo plano (apshoudler)
     runner.shutdown()
     # Cierra el programa
     os.kill(os.getpid(), signal.SIGTERM)
 
-def startImages():
+def restartImages():
     # cambia el directorio de trabajo al directorio del programa
     separador = os.path.sep
     dir_actual = os.path.dirname(os.path.abspath(__file__))
@@ -44,9 +44,10 @@ def startImages():
 
 
 def main():
-    startImages()
+    restartImages()
+    
     runner = Runner()
-    keyboard.on_press_key("x", lambda _: shutdown(runner)) 
+    atexit.register(shutdown, runner=runner)
     # ejecuta el runner
     try:
         runner.run()
