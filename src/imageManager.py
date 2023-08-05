@@ -98,7 +98,7 @@ class ImageManager:
     def getImageList(self) -> List[str]:
         if not self.checkBuffer():
             return []
-        return [os.path.join("buffer/" + self.satelite, archivo) for archivo in os.listdir("buffer/" + self.satelite)]
+        return [os.path.join("buffer/" + self.satelite + "/" + archivo) for archivo in os.listdir("buffer/" + self.satelite)]
 
     # actualiza el buffer y maneja los errores
     def updateBuffer(self):
@@ -108,7 +108,7 @@ class ImageManager:
 
         # si no se pudo descargar la imagen, se intenta hasta que se descargue o se llegue al máximo de intentos
         while not imageDownloaded and tries != maxTries:
-            imageDownloaded = self.downloadImage(Util.getLastAvailableDate(), self.satelite)
+            imageDownloaded = self.downloadImage(Util.getLastAvailableDate())
             Log.bufferFailedDownloadTry(tries + 1)
             tries += 1
             sleep(10)

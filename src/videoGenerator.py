@@ -2,6 +2,7 @@ import contextlib
 import json
 import os
 import sys
+from PIL import Image
 
 from moviepy.editor import ImageSequenceClip, CompositeVideoClip, concatenate
 from moviepy.video import fx
@@ -48,8 +49,16 @@ class VideoGenerator:
         duration = 1 # TODO: ver como implementar esto
 
         images_len = len(image_list)
+        
+        sequence = None
+        try:
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
+        # si una imagen está en escala de grises el método ImageSequenceClip lanza un IndexError
+        except IndexError:
+            # Procesa cada imagen y la guarda con formato RGB
+            [Image.open(image).convert("RGB").save(image) for image in image_list]
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
 
-        sequence = ImageSequenceClip(image_list, durations=[duration] * images_len, fps=self.fps)
         # sequence = self.addProgressBar(sequence) TODO
         return sequence
 
@@ -98,7 +107,7 @@ class VideoGenerator:
         # centra la secuencia de imágenes y lo hace mas chico
         final_sequence = final_sequence.set_position(("center", "center"))
         final_sequence = final_sequence.resize(self.mapResizeRatio)
-
+        1 / 0 # TODO SACAR SACAR SACAR
         self.generateFinalVideo(final_sequence, total_frames)
 
 

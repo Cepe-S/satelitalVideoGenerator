@@ -6,7 +6,6 @@ from imageManager import ImageManager
 from videoGenerator import VideoGenerator
 import keyboard
 
-
 class Runner:
 
     def __init__(self) -> None:
@@ -43,7 +42,11 @@ class Runner:
                     image_lists.append(imager.getImageList())
 
                 # genera el video con las listas de imágenes
-                generator.imagesToVideo(image_lists, 2)
+                try:
+                    generator.imagesToVideo(image_lists, 2)
+                except Exception as e:
+                    Log.videoRenderingError(e)
+                    pass
 
         self.sched.start()
 
