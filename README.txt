@@ -6,11 +6,11 @@
 - codec: corresponde al codec de video
 - extension: corresponde a la extension del video (utilizar extensiones compatibles con el codec)
 
-Extension	->  Codec
+Extension	  ->  Codec
 mp4	        ->  libx264 or mpeg4  ->  (tiene compresión)
 avi         ->  rawvideo          ->  (no tiene compresión)
 ogg	        ->  libvorbis    
-webm	    ->  libvpx
+webm	      ->  libvpx
 
 - width: ancho del video
 - height: alto del video
