@@ -58,6 +58,12 @@ class VideoGenerator:
             # Procesa cada imagen y la guarda con formato RGB
             [Image.open(image).convert("RGB").save(image) for image in image_list]
             sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
+        except Exception: # maneja el error de imagenes de distinto tamaño
+            # TODO: manejar mejor el error
+            [Image.open(image).convert("RGB").save(image) for image in image_list]
+            size = Image.open(image_list[0]).size
+            [Image.open(image).resize(size).save(image) for image in image_list]
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
 
         # sequence = self.addProgressBar(sequence) TODO
         return sequence
@@ -107,7 +113,7 @@ class VideoGenerator:
         # centra la secuencia de imágenes y lo hace mas chico
         final_sequence = final_sequence.set_position(("center", "center"))
         final_sequence = final_sequence.resize(self.mapResizeRatio)
-        1 / 0 # TODO SACAR SACAR SACAR
+        
         self.generateFinalVideo(final_sequence, total_frames)
 
 
