@@ -123,10 +123,10 @@ class VideoGenerator:
 
 
 
-from imageManager import ImageManager
+# from imageManager import ImageManager
 
-v = VideoGenerator()
-iARG = ImageManager(satelite="ARG")
-iCEN = ImageManager(satelite="CEN")
+# v = VideoGenerator()
+# iARG = ImageManager(satelite="ARG")
+# iCEN = ImageManager(satelite="CEN")
 
-v.imagesToVideo([iARG.getImageList(), iCEN.getImageList()], 2)
+# v.imagesToVideo([iARG.getImageList(), iCEN.getImageList()], 2)
