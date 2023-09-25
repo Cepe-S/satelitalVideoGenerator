@@ -42,28 +42,34 @@ class VideoGenerator:
         self.fileName = config['fileName']
         self.extension = config['extension']
     
+        self.imagesLen = 24
+        self.imageCount = 24
+        self.viewsCount = 2
+        self.lastImageRepeats = 5
     # def addProgressBar(self, sequence: ImageSequenceClip) -> ImageSequenceClip:
     #     return fx.all.sequence(sequence, [fx.all.time_mirror, fx.all.time_symmetrize])
 
     def generateImageSequence(self, image_list:List[str]) -> ImageSequenceClip:
         duration = 1 # TODO: ver como implementar esto
 
-        images_len = len(image_list)
+        # agrega la última imagen al final de la lista una x cantidad de veces
+        for _ in range(self.lastImageRepeats):
+            image_list.append(image_list[-1])
         
         sequence = None
         try:
-            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * self.imagesLen)
         # si una imagen está en escala de grises el método ImageSequenceClip lanza un IndexError
         except IndexError:
             # Procesa cada imagen y la guarda con formato RGB
             [Image.open(image).convert("RGB").save(image) for image in image_list]
-            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
-        except Exception: # maneja el error de imagenes de distinto tamaño
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * self.imagesLen)
+        except Exception: # maneja el error de imágenes de distinto tamaño
             # TODO: manejar mejor el error
             [Image.open(image).convert("RGB").save(image) for image in image_list]
             size = Image.open(image_list[0]).size
             [Image.open(image).resize(size).save(image) for image in image_list]
-            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * images_len)
+            sequence = ImageSequenceClip(image_list, fps=self.fps, durations=[duration] * self.imagesLen)
 
         # sequence = self.addProgressBar(sequence) TODO
         return sequence
@@ -76,8 +82,8 @@ class VideoGenerator:
         sequence.duration = total_frames # iguala la duración de la secuencia de imágenes con la cantidad de frames
 
         # crea el fondo como una secuencia de imágenes con la misma cantidad de frames que la secuencia de imágenes
-        background_clip = ImageSequenceClip([self.background] * total_frames, durations=[self.duration] * total_frames, 
-                                            fps=self.fps)
+        background_clip = ImageSequenceClip([self.background] * (total_frames + 1), durations=[1] * (total_frames), 
+                                            fps=self.fps) # ni idea pq hay q agregar un frame de más pero si no lo hago queda mal
         
         # une el fondo con la secuencia de imágenes
         final_clip = CompositeVideoClip([background_clip, sequence], size=(self.width, self.height))
@@ -93,12 +99,10 @@ class VideoGenerator:
     # globaliza todas las funciones
     def imagesToVideo(self, image_lists: List[List[str]], repeats: int):
         # devuelve la cantidad de frames totales sumando la cantidad de imágenes
-        total_frames = sum(len(sublista) for sublista in image_lists) * repeats
-
         sequences = []
         # genera una secuencia de imágenes para cada satélite y las guarda en una lista
         for image_list in image_lists:
-            # si la cantidad de imagenes es menor a 24, duplica la última imágen
+            # si la cantidad de imagenes es menor a 24, duplica la última imágen # TODO: arreglar lógica o no?
             if len(image_list) < 24:
                 for _ in range(24 - len(image_list)):
                     image_list.append(image_list[-1])
@@ -107,6 +111,7 @@ class VideoGenerator:
             for _ in range(repeats):
                 sequences.append(image_sequence)
 
+            total_frames = (self.imageCount + self.lastImageRepeats) * repeats * self.viewsCount
         # une todas las secuencias de imágenes de los distintos satélites
         final_sequence = self.joinSequences(sequences)
 
@@ -118,10 +123,10 @@ class VideoGenerator:
 
 
 
-# from imageManager import ImageManager
+from imageManager import ImageManager
 
-# v = VideoGenerator()
-# iARG = ImageManager(satelite="ARG")
-# iCEN = ImageManager(satelite="CEN")
+v = VideoGenerator()
+iARG = ImageManager(satelite="ARG")
+iCEN = ImageManager(satelite="CEN")
 
-# v.imagesToVideo([iARG.getImageList(), iCEN.getImageList()], 2)
+v.imagesToVideo([iARG.getImageList(), iCEN.getImageList()], 2)
