@@ -55,15 +55,17 @@ class ImageManager:
         # si la imagen ya se encuentra en el buffer, no se descarga
         if self.isInBuffer(link):
             return link.getFilename()
-
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0, Accept',
+                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                   'Acept-Language': 'es-AR,es;q=0.8'}
         # se intenta descargar la imagen
-        request = requests.get(link.getFinalLink())
+        request = requests.get(link.getFinalLink(), headers=headers)
 
         i = 0
         # en el caso de que no se encuentre se cambian los segundos de la fecha del link
         while request.status_code == 404 and i < len(bestTryOrder):
             link.setSecond(bestTryOrder[i])
-            request = requests.get(link.getFinalLink())
+            request = requests.get(link.getFinalLink(), headers=headers)
             i += 1
 
         # si se encuentra la imagen, se guarda en el buffer
